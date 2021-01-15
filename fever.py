@@ -59,13 +59,13 @@ def format_temperature(temperature, add_unit=True):
     celsius = temperature / 100 - 273.15
     if FLAGS.display_metric:
         if add_unit:
-            return '%.f °C' % celsius
+            return '%.f C' % celsius
         else:
             return '%.f' % celsius
     else:
         fahrenheit = celsius * 9 / 5 + 32
         if add_unit:
-            return '%.f °F' % fahrenheit
+            return '%.f F' % fahrenheit
         else:
             return '%.f' % fahrenheit
 
@@ -73,8 +73,11 @@ def format_temperature(temperature, add_unit=True):
 def main(_):
     if FLAGS.detect:
         # Initialize ambient sensors.
-        ambient = bme680.BME680(i2c_addr=bme680.I2C_ADDR_PRIMARY,
-                                i2c_device=SMBus(1))
+        try:
+            ambient = bme680.BME680(i2c_addr=bme680.I2C_ADDR_PRIMARY,i2c_device=SMBus(1))
+        except IOError:
+            ambient = bme680.BME680(i2c_addr=bme680.I2C_ADDR_SECONDARY,i2c_device=SMBus(1))
+        
         # TODO: Tune settings.
         ambient.set_humidity_oversample(bme680.OS_2X)
         ambient.set_pressure_oversample(bme680.OS_4X)
@@ -118,7 +121,7 @@ def main(_):
                     if not ambient.get_sensor_data():
                         logging.warning('Ambient sensor data not ready')
                     ambient_data = ambient.data
-                    logging.debug('Ambient temperature: %.f °C'
+                    logging.debug('Ambient temperature: %.f C'
                                   % ambient_data.temperature)
                     logging.debug('Ambient pressure: %.f hPa'
                                   % ambient_data.pressure)
